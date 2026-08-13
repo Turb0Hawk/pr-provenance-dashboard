@@ -1,0 +1,89 @@
+{
+  "_comment": "Example config. Copy this, fill in your own repository, roster, signals and copy, and keep YOUR filled-in version outside this repository if it contains organisation data.",
+  "repo": "your-org/your-repo",
+  "repoTotalPrs": 1000,
+  "urlTemplate": "https://github.com/your-org/your-repo/pull/{n}",
+  "routineUrl": "",
+  "categories": {
+    "automation": "Automation",
+    "team": "Core team",
+    "outside": "Everyone else"
+  },
+  "botHints": [
+    "bot",
+    "dependabot",
+    "renovate",
+    "copilot",
+    "github-actions"
+  ],
+  "roster": {
+    "some-login": "Some Person",
+    "another-login": "Another Person"
+  },
+  "names": {
+    "occasional-contributor": "Occasional Contributor"
+  },
+  "signals": [
+    {
+      "key": "title_ticket",
+      "label": "title carries the ticket tag",
+      "field": "title",
+      "pattern": "\\bTICKET\\b",
+      "flags": "i",
+      "query": "TICKET in:title"
+    },
+    {
+      "key": "title_keyword",
+      "label": "title mentions the subject",
+      "field": "title",
+      "pattern": "\\bkeyword\\b",
+      "flags": "i",
+      "query": "keyword in:title"
+    },
+    {
+      "key": "head_prefix",
+      "label": "branch prefix/*",
+      "field": "head",
+      "pattern": "(^prefix/)|(\\bprefix\\b)",
+      "flags": "i",
+      "query": "head:prefix"
+    },
+    {
+      "key": "base_integration",
+      "label": "merged into the integration branch",
+      "field": "base",
+      "pattern": "^integration-branch$",
+      "flags": "i",
+      "query": "base:integration-branch"
+    }
+  ],
+  "copy": {
+    "docTitle": "Pull request provenance",
+    "eyebrow": "your-org/your-repo · pull requests",
+    "h1": "Who opens the pull requests",
+    "intro": "Every in-scope pull request in this repository, split three ways: opened by automation, by the core team, or by everyone else. The filters scope the figures, the timeline and the ledger together.",
+    "stampTotalLabel": "In-scope PRs",
+    "heroLabel": "PRs in view",
+    "provPanelTitle": "Who opens these PRs",
+    "timelineTitle": "PRs opened over time",
+    "whyColumnHeader": "Why in scope",
+    "whyTooltipEmpty": "no signal recorded",
+    "methodWhyHeading": "What counts as in scope",
+    "methodWhyParas": [
+      "Describe your signals here: which title tags, which branch prefixes, and what each one means. Hover any row's why cell to see which signals fired for that PR."
+    ],
+    "methodExclusionHeading": "What this page deliberately leaves out",
+    "methodExclusionPara": "State plainly anything the data cannot see, so a reader does not mistake a gap for a zero.",
+    "methodProvHeading": "How provenance is assigned",
+    "methodProvNote": "Provenance keys off the account that opened the pull request, never the title.",
+    "methodCaveatHeading": "Read this before you draw conclusions",
+    "methodCaveats": [
+      "PR count is not work count. If some work reaches your default branch without a pull request, this page under-represents whoever did it.",
+      "Counts are per GitHub account, not per person, so anyone with two accounts is counted twice."
+    ],
+    "methodRefreshHeading": "How this page stays current",
+    "methodRefreshPara": "Explain what rebuilds the page and how to read the 'Data as of' stamp.",
+    "refreshCadence": "on a schedule",
+    "csvBasename": "pull-requests"
+  }
+}

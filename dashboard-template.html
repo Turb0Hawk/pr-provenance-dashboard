@@ -1,0 +1,1398 @@
+<title>__TITLE__</title>
+
+<style>
+/* ───────────────────────────────────────────────────────────────
+   Tokens. Bare :root carries the COMPLETE light palette.
+   Dark redefines tokens only, under both the OS media query
+   (guarded so an explicit light stamp wins) and the [data-theme]
+   stamp (so the toggle wins the other way).
+   Series slots 1-3 of the validated categorical palette; verified
+   against these exact surfaces in both modes, adjacent + all-pairs.
+   ─────────────────────────────────────────────────────────────── */
+:root {
+  color-scheme: light;
+  --plane:       #eef1f4;
+  --card:        #fbfcfd;
+  --inset:       #f4f6f9;
+  --ink:         #10151a;
+  --ink-2:       #586170;
+  --ink-3:       #5e6773;
+  --rule:        #dde3e9;
+  --rule-2:      #c7d0da;
+  --accent:      #1b63b8;
+  --focus:       #2a78d6;
+
+  --s-auto:      #2a78d6;
+  --s-team:      #eb6834;
+  --s-out:       #1baf7a;
+
+  /* Status hues are theme-invariant and used only for NON-text cues (pill
+     borders), where 3:1 applies. Text never wears them: --txt-* below are
+     themed so small delta text clears AA 4.5:1 on every surface. */
+  --good:        #0ca30c;
+  --warn:        #fab219;
+  --crit:        #d03b3b;
+  --txt-good:    #006300;
+  --txt-crit:    #b02525;
+  --rule-warn:   #b87d04;
+
+  --shadow:      0 1px 2px rgba(16,21,26,.06), 0 1px 1px rgba(16,21,26,.04);
+  --tip-shadow:  0 4px 14px rgba(16,21,26,.14);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --plane:  #0c0e11;
+    --card:   #15181c;
+    --inset:  #1b1f25;
+    --ink:    #eef2f6;
+    --ink-2:  #a3aeba;
+    --ink-3:  #8d97a3;
+    --rule:   #252b32;
+    --rule-2: #333c46;
+    --accent: #6da7ec;
+    --focus:  #5598e7;
+    --s-auto: #3987e5;
+    --s-team: #d95926;
+    --s-out:  #199e70;
+    --txt-good: #0ca30c;
+    --txt-crit: #e2625f;
+    --rule-warn: #fab219;
+    --shadow: 0 1px 2px rgba(0,0,0,.4);
+    --tip-shadow: 0 4px 16px rgba(0,0,0,.55);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --plane:  #0c0e11;
+  --card:   #15181c;
+  --inset:  #1b1f25;
+  --ink:    #eef2f6;
+  --ink-2:  #a3aeba;
+  --ink-3:  #8d97a3;
+  --rule:   #252b32;
+  --rule-2: #333c46;
+  --accent: #6da7ec;
+  --focus:  #5598e7;
+  --s-auto: #3987e5;
+  --s-team: #d95926;
+  --s-out:  #199e70;
+  --txt-good: #0ca30c;
+  --txt-crit: #e2625f;
+  --rule-warn: #fab219;
+  --shadow: 0 1px 2px rgba(0,0,0,.4);
+  --tip-shadow: 0 4px 16px rgba(0,0,0,.55);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--plane);
+  color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.mono {
+  font-family: ui-monospace, "JetBrains Mono", "Cascadia Code", "SF Mono",
+               Menlo, Consolas, monospace;
+  font-size: .92em;
+  font-variant-ligatures: none;
+}
+
+.wrap {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 28px 24px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* ── masthead ── */
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+.masthead h1 {
+  font-size: 25px;
+  line-height: 1.15;
+  font-weight: 650;
+  margin: 6px 0 0;
+  letter-spacing: -.01em;
+  text-wrap: balance;
+}
+.masthead p {
+  margin: 8px 0 0;
+  color: var(--ink-2);
+  max-width: 68ch;
+}
+.stamp {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.stamp b { color: var(--ink-2); font-weight: 600; }
+.stamp .refresh-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+  border-bottom: 1px solid transparent;
+}
+.stamp .refresh-link:hover { border-bottom-color: var(--accent); }
+.stamp .refresh-link:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* ── filter row: ONE row, above everything it scopes ── */
+.filters {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  box-shadow: var(--shadow);
+}
+.fgroup { display: flex; align-items: center; gap: 7px; }
+.flabel {
+  font-size: 11px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+select, input[type="search"] {
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--card);
+  border: 1px solid var(--rule-2);
+  border-radius: 7px;
+  padding: 5px 8px;
+}
+input[type="search"] { min-width: 210px; }
+select:focus-visible, input:focus-visible, button:focus-visible,
+.chip:focus-visible, th.sortable:focus-visible, .band:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  font-size: 12.5px;
+  padding: 4px 10px 4px 8px;
+  border: 1px solid var(--rule-2);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.chip[aria-pressed="true"] { color: var(--ink); border-color: var(--rule-2); background: var(--inset); font-weight: 550; }
+/* Off-state must stay READABLE — these counts are page data, and the chip is the
+   control you use to switch the bucket back on. A blanket opacity dropped the
+   count to 1.71:1, so the excluded state is carried by a struck-through label
+   and a dimmed swatch instead. */
+.chip[aria-pressed="false"] { color: var(--ink-3); }
+.chip[aria-pressed="false"] .nm { text-decoration: line-through; }
+.chip[aria-pressed="false"] .dot { opacity: .3; }
+.chip .dot { width: 9px; height: 9px; border-radius: 2px; flex: none; }
+.chip .ct { color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+button.act {
+  font: inherit;
+  font-size: 13px;
+  padding: 5px 11px;
+  border-radius: 7px;
+  border: 1px solid var(--rule-2);
+  background: var(--card);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+button.act:hover { color: var(--ink); background: var(--inset); }
+button.act[disabled] { opacity: .45; cursor: default; }
+.spacer { flex: 1 1 auto; }
+.viewing { font-size: 12.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+/* ── cards ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+.card-h {
+  padding: 13px 16px 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.card-h h2 {
+  font-size: 13px;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  font-weight: 650;
+  margin: 0;
+}
+.card-h .note { font-size: 12px; color: var(--ink-3); }
+
+/* ── stat strip ── */
+.stats { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 14px; }
+@media (max-width: 860px) { .stats { grid-template-columns: 1fr 1fr; } }
+.tile { padding: 14px 16px 16px; }
+.tile .lab {
+  font-size: 11px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+.tile .val { font-size: 27px; font-weight: 620; letter-spacing: -.015em; margin-top: 4px; }
+.tile.hero .val { font-size: 46px; line-height: 1.05; font-weight: 650; }
+.tile .sub { font-size: 12px; color: var(--ink-2); margin-top: 3px; }
+
+/* ── provenance panel ── */
+.prov-rows { padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+.prow { display: grid; grid-template-columns: 210px 1fr 108px; gap: 14px; align-items: center; }
+@media (max-width: 720px) { .prow { grid-template-columns: 1fr; gap: 5px; } }
+.prow .who { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.prow .swatch { width: 11px; height: 11px; border-radius: 2px; flex: none; }
+.prow .nm { font-weight: 600; font-size: 13.5px; }
+.prow .track { height: 9px; background: var(--inset); border-radius: 3px; overflow: hidden; }
+.prow .fill { height: 100%; border-radius: 3px 0 0 3px; }
+.prow .fig { text-align: right; font-variant-numeric: tabular-nums; font-size: 13px; }
+.prow .fig b { font-weight: 620; }
+.prow .fig span { color: var(--ink-3); }
+.prow .members { font-size: 11.5px; color: var(--ink-3); margin-top: 2px; }
+
+/* ── chart ── */
+.chart-body { padding: 6px 16px 14px; position: relative; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; padding: 4px 16px 0; }
+.legend .li { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink-2); }
+.legend .li .sw { width: 11px; height: 11px; border-radius: 2px; }
+svg.chart { display: block; width: 100%; overflow: visible; }
+.gl { stroke: var(--rule); stroke-width: 1; }
+.axis-t { fill: var(--ink-3); font-size: 10.5px; font-family: inherit; }
+.band { fill: transparent; cursor: default; }
+.band:hover, .band[data-hot="1"] { fill: var(--ink); fill-opacity: .04; }
+
+.tip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--card);
+  border: 1px solid var(--rule-2);
+  border-radius: 8px;
+  padding: 8px 10px;
+  box-shadow: var(--tip-shadow);
+  font-size: 12px;
+  min-width: 158px;
+  opacity: 0;
+  transition: opacity .1s;
+  z-index: 30;
+}
+.tip[data-on="1"] { opacity: 1; }
+.tip .tt { font-weight: 650; font-size: 12px; margin-bottom: 5px; color: var(--ink); }
+.tip .tr { display: flex; align-items: center; gap: 7px; margin-top: 3px; }
+.tip .tr .key { width: 12px; height: 2px; border-radius: 1px; flex: none; }
+.tip .tr .tv { font-weight: 650; font-variant-numeric: tabular-nums; min-width: 26px; text-align: right; color: var(--ink); }
+.tip .tr .tn { color: var(--ink-2); }
+.tip .tot { margin-top: 6px; padding-top: 5px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; color: var(--ink-2); }
+.tip .tot b { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* ── table ── */
+/* Scrolls on both axes: wide content must not push the page sideways, and a
+   bounded height is what lets the sticky head pin correctly inside it. */
+.tbl-scroll { overflow: auto; max-height: 72vh; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+thead th {
+  position: sticky;
+  top: 0;
+  background: var(--card);
+  text-align: left;
+  font-size: 11px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 650;
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--rule-2);
+  white-space: nowrap;
+  z-index: 2;
+}
+th.sortable { cursor: pointer; user-select: none; }
+th.sortable:hover { color: var(--ink-2); }
+th .arw { color: var(--ink-3); font-size: 9px; margin-left: 3px; }
+tbody td { padding: 8px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+tbody tr:hover { background: var(--inset); }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* Colour on the cell itself — a child block cannot resolve height:100% here. */
+td.stripe { padding: 0; width: 3px; min-width: 3px; }
+td.pr a { color: var(--accent); text-decoration: none; font-variant-numeric: tabular-nums; }
+td.pr a:hover { text-decoration: underline; }
+td.ti { min-width: 320px; max-width: 620px; }
+td.ti .txt { color: var(--ink); }
+.tag {
+  display: inline-block;
+  font-size: 10.5px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--rule-2);
+  color: var(--ink-3);
+  margin-left: 5px;
+  white-space: nowrap;
+}
+.pchip { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.pchip .d { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+.pill {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+/* Border carries the status hue (non-text, 3:1); the label wears a themed text
+   token so 11px text clears AA on every surface. */
+.pill.merged { color: var(--txt-good); border-color: var(--good); }
+.pill.open   { color: var(--accent);   border-color: var(--accent); }
+.pill.draft  { color: var(--ink-3);    border-color: var(--rule-2); }
+.pill.closed { color: var(--txt-crit); border-color: var(--crit); }
+td.auth .lg { color: var(--ink); }
+td.auth .rn { display: block; font-size: 11.5px; color: var(--ink-3); }
+td.scope { color: var(--ink-2); white-space: nowrap; }
+td.scope .q { cursor: help; border-bottom: 1px dotted var(--rule-2); }
+.plus { color: var(--txt-good); }
+.minus { color: var(--txt-crit); }
+.empty { padding: 40px 16px; text-align: center; color: var(--ink-3); }
+.more { padding: 12px 16px; text-align: center; }
+
+/* ── methodology ── */
+.method { padding: 14px 16px 18px; font-size: 12.5px; color: var(--ink-2); }
+.method h3 {
+  font-size: 11px; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--ink-3); font-weight: 650; margin: 14px 0 6px;
+}
+.method h3:first-child { margin-top: 0; }
+.method ul { margin: 0; padding-left: 18px; }
+.method li { margin: 3px 0; }
+.method p { margin: 6px 0; max-width: 88ch; }
+.method code {
+  font-family: ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
+  font-size: 11.5px; background: var(--inset); padding: 1px 4px; border-radius: 4px;
+}
+.caveat { border-left: 2px solid var(--rule-warn); padding-left: 11px; margin: 8px 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="eyebrow" id="eyebrow"></div>
+    <h1 id="pageH1"></h1>
+    <p id="intro"></p>
+    <div class="stamp" id="stamp"></div>
+  </header>
+
+  <div class="filters" role="group" aria-label="Filters">
+    <div class="fgroup">
+      <span class="flabel">Provenance</span>
+      <div class="chips" id="provChips"></div>
+    </div>
+    <div class="fgroup">
+      <label class="flabel" for="fState">State</label>
+      <select id="fState">
+        <option value="all">Any</option>
+        <option value="merged">Merged</option>
+        <option value="open">Open</option>
+        <option value="draft">Draft</option>
+        <option value="closed">Closed unmerged</option>
+      </select>
+    </div>
+    <div class="fgroup">
+      <label class="flabel" for="fRange">Opened</label>
+      <select id="fRange">
+        <option value="0">All time</option>
+        <option value="90">Last 90 days</option>
+        <option value="365">Last 12 months</option>
+        <option value="730">Last 24 months</option>
+      </select>
+    </div>
+    <div class="fgroup">
+      <label class="flabel" for="fQ">Find</label>
+      <input type="search" id="fQ" placeholder="title, author, branch, ticket&hellip;">
+    </div>
+    <span class="spacer"></span>
+    <span class="viewing" id="viewing"></span>
+    <button class="act" id="btnReset" type="button">Reset</button>
+    <button class="act" id="btnCsv" type="button">Export CSV</button>
+  </div>
+
+  <section class="stats" id="stats" aria-label="Summary"></section>
+
+  <section class="card">
+    <div class="card-h">
+      <h2 id="provTitle"></h2>
+      <span class="note" id="provNote"></span>
+    </div>
+    <div class="prov-rows" id="provRows"></div>
+  </section>
+
+  <section class="card">
+    <div class="card-h">
+      <h2 id="timelineTitle"></h2>
+      <span class="note" id="binNote"></span>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="chart-body">
+      <svg class="chart" id="chart" role="img"
+           aria-label="Stacked columns of pull requests by provenance over time"></svg>
+      <div class="tip" id="tip" role="status" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-h">
+      <h2>The ledger</h2>
+      <span class="note" id="tblNote"></span>
+    </div>
+    <div class="tbl-scroll">
+      <table id="tbl">
+        <thead><tr id="thead"></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="more" id="more"></div>
+  </section>
+
+  <section class="card">
+    <div class="card-h"><h2>How this was built</h2></div>
+    <div class="method" id="method"></div>
+  </section>
+
+</div>
+
+<script id="payload" type="application/json">__DATA__</script>
+
+<script>
+(function () {
+  "use strict";
+
+  var PAY = JSON.parse(document.getElementById("payload").textContent);
+  var META = PAY.meta, ROWS = PAY.rows;
+
+  // Category labels come from the config, so this template names no team,
+  // product or convention of its own.
+  var CAT = META.categories || {};
+  var COPY = META.copy || {};
+  var PROV = [
+    { k: "automation", label: CAT.automation || "Automation", css: "--s-auto" },
+    { k: "team",       label: CAT.team       || "Team",       css: "--s-team" },
+    { k: "outside",    label: CAT.outside    || "Everyone else", css: "--s-out" }
+  ];
+  var PCOL = {};
+  PROV.forEach(function (p) { PCOL[p.k] = "var(" + p.css + ")"; });
+
+  var state = {
+    prov: { automation: true, team: true, outside: true },
+    st: "all", range: 0, q: "",
+    sort: "created", dir: -1, limit: 250
+  };
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  function txt(el, s) { el.textContent = s == null ? "" : String(s); return el; }
+  function mk(tag, cls) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    return e;
+  }
+  function fmt(n) { return n.toLocaleString("en-US"); }
+  function pct(a, b) { return b ? Math.round((a / b) * 100) : 0; }
+
+  /* ── filtering ─────────────────────────────────────────────── */
+  var LAST = META.last;
+  function cutoff(days) {
+    if (!days) return null;
+    var d = new Date(LAST + "T00:00:00Z");
+    d.setUTCDate(d.getUTCDate() - days);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function apply() {
+    var co = cutoff(state.range);
+    var q = state.q.trim().toLowerCase();
+    return ROWS.filter(function (r) {
+      if (!state.prov[r.p]) return false;
+      // No scope filter: every row is in scope by construction, because the
+      // configured discovery queries ARE the scope definition.
+      if (state.st !== "all" && r.st !== state.st) return false;
+      if (co && r.c < co) return false;
+      if (q) {
+        var hay = (r.t + " " + r.u + " " + r.hb + " " + r.bb + " " + r.n +
+                   " " + (META.names[r.u] || "")).toLowerCase();
+        if (hay.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+  }
+
+  /* ── stat tiles ────────────────────────────────────────────── */
+  function renderStats(rows) {
+    var host = $("stats");
+    host.textContent = "";
+    var merged = rows.filter(function (r) { return r.st === "merged"; }).length;
+    var live = rows.filter(function (r) { return r.st === "open" || r.st === "draft"; }).length;
+    var authors = {};
+    rows.forEach(function (r) { if (r.p !== "automation") authors[r.u] = 1; });
+
+    var tiles = [
+      { lab: COPY.heroLabel || "PRs in view", val: fmt(rows.length), hero: true,
+        sub: rows.length === META.total
+          ? "of " + fmt(META.repoTotalPrs) + " PRs in the repo"
+          : "of " + fmt(META.total) + " in scope" },
+      { lab: "Merged", val: fmt(merged), sub: pct(merged, rows.length) + "% of view" },
+      { lab: "Still open", val: fmt(live), sub: live === 0 ? "nothing outstanding" : "open or draft" },
+      { lab: "People involved", val: fmt(Object.keys(authors).length), sub: "distinct human authors" }
+    ];
+    tiles.forEach(function (t) {
+      var c = mk("div", "card tile" + (t.hero ? " hero" : ""));
+      c.appendChild(txt(mk("div", "lab"), t.lab));
+      c.appendChild(txt(mk("div", "val"), t.val));
+      c.appendChild(txt(mk("div", "sub"), t.sub));
+      host.appendChild(c);
+    });
+  }
+
+  /* ── provenance rows ──────────────────────────────────────── */
+  function renderProv(rows) {
+    var host = $("provRows");
+    host.textContent = "";
+    var counts = { automation: 0, team: 0, outside: 0 };
+    rows.forEach(function (r) { counts[r.p]++; });
+    // Normalise to the TOTAL, not the largest series: the caption and the figure
+    // beside each bar both state share-of-total, so the bar must encode the same
+    // thing. Normalising to max made 316/630 fill the whole track next to "50%".
+    var denom = Math.max(1, rows.length);
+
+    PROV.forEach(function (p) {
+      var n = counts[p.k];
+      var row = mk("div", "prow");
+
+      var who = mk("div", "who");
+      var sw = mk("span", "swatch");
+      sw.style.background = PCOL[p.k];
+      who.appendChild(sw);
+      var box = mk("div");
+      box.appendChild(txt(mk("span", "nm"), p.label));
+      var members;
+      if (p.k === "team") {
+        members = Object.keys(META.roster).length + " on the roster";
+      } else if (p.k === "automation") {
+        members = META.bots.join(", ");
+      } else {
+        var s = {};
+        rows.forEach(function (r) { if (r.p === "outside") s[r.u] = 1; });
+        members = Object.keys(s).length + " distinct authors";
+      }
+      box.appendChild(txt(mk("div", "members"), members));
+      who.appendChild(box);
+      row.appendChild(who);
+
+      var track = mk("div", "track");
+      var fill = mk("div", "fill");
+      fill.style.width = (n / denom * 100) + "%";
+      fill.style.background = PCOL[p.k];
+      track.appendChild(fill);
+      row.appendChild(track);
+
+      var fig = mk("div", "fig");
+      var b = mk("b"); txt(b, fmt(n)); fig.appendChild(b);
+      var sp = mk("span"); txt(sp, "  " + pct(n, rows.length) + "%"); fig.appendChild(sp);
+      row.appendChild(fig);
+
+      host.appendChild(row);
+    });
+
+    txt($("provNote"), "share of the " + fmt(rows.length) + " PRs in view");
+  }
+
+  /* ── timeline ─────────────────────────────────────────────── */
+  function binOf(dateStr, mode) {
+    var y = dateStr.slice(0, 4), m = parseInt(dateStr.slice(5, 7), 10);
+    if (mode === "quarter") return y + "-Q" + (Math.floor((m - 1) / 3) + 1);
+    if (mode === "month") return dateStr.slice(0, 7);
+    var d = new Date(dateStr + "T00:00:00Z");
+    var day = d.getUTCDay();
+    d.setUTCDate(d.getUTCDate() - ((day + 6) % 7));
+    return d.toISOString().slice(0, 10);
+  }
+
+  function binMode(rows) {
+    if (!rows.length) return "quarter";
+    var lo = rows[0].c, hi = rows[0].c;
+    rows.forEach(function (r) { if (r.c < lo) lo = r.c; if (r.c > hi) hi = r.c; });
+    var months = (parseInt(hi.slice(0, 4), 10) - parseInt(lo.slice(0, 4), 10)) * 12 +
+                 (parseInt(hi.slice(5, 7), 10) - parseInt(lo.slice(5, 7), 10));
+    if (months > 36) return "quarter";
+    if (months > 8) return "month";
+    return "week";
+  }
+
+  // A bin sequence must be CONTINUOUS. Emitting only bins that received a row
+  // turns the time axis ordinal: a quiet stretch collapses to a normal column
+  // gap, so a 9-quarter void reads as a smooth ramp. These two helpers walk the
+  // calendar so zero-PR periods occupy their real width.
+  function nextBin(b, mode) {
+    if (mode === "quarter") {
+      var y = parseInt(b.slice(0, 4), 10), q = parseInt(b.slice(6), 10);
+      return q === 4 ? (y + 1) + "-Q1" : y + "-Q" + (q + 1);
+    }
+    if (mode === "month") {
+      var ym = parseInt(b.slice(0, 4), 10), mm = parseInt(b.slice(5, 7), 10);
+      return mm === 12 ? (ym + 1) + "-01"
+                       : ym + "-" + String(mm + 1).padStart(2, "0");
+    }
+    var d = new Date(b + "T00:00:00Z");
+    d.setUTCDate(d.getUTCDate() + 7);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function enumerateBins(lo, hi, mode) {
+    var out = [lo], cur = lo, guard = 0;
+    while (cur < hi && guard++ < 600) { cur = nextBin(cur, mode); out.push(cur); }
+    return out;
+  }
+
+  function niceTicks(max) {
+    if (max <= 4) return [0, 1, 2, 3, 4].slice(0, max + 1);
+    var raw = max / 4;
+    var mag = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10));
+    var step = mag;
+    [1, 2, 2.5, 5, 10].some(function (m) {
+      if (mag * m >= raw) { step = mag * m; return true; }
+      return false;
+    });
+    // The top tick must be >= max, or the tallest bar renders past the plot.
+    var topv = Math.ceil(max / step) * step;
+    var out = [];
+    for (var v = 0; v <= topv + step * 0.001; v += step) out.push(Math.round(v));
+    return out;
+  }
+
+  function roundTop(x, y, w, h, r) {
+    r = Math.min(r, w / 2, h);
+    return "M" + x + "," + (y + h) +
+           "L" + x + "," + (y + r) +
+           "Q" + x + "," + y + " " + (x + r) + "," + y +
+           "L" + (x + w - r) + "," + y +
+           "Q" + (x + w) + "," + y + " " + (x + w) + "," + (y + r) +
+           "L" + (x + w) + "," + (y + h) + "Z";
+  }
+
+  var chartRows = [];
+  var lastChartW = 0;
+
+  function renderChart(rows) {
+    chartRows = rows;
+    var svg = $("chart");
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    var mode = binMode(rows);
+    txt($("binNote"), rows.length
+      ? "one column per " + mode + " · " + fmt(rows.length) + " PRs"
+      : "nothing in view");
+
+    var agg = {};
+    function blank() { return { automation: 0, team: 0, outside: 0, total: 0 }; }
+    rows.forEach(function (r) {
+      if (!r.c) return;
+      var b = binOf(r.c, mode);
+      if (!agg[b]) agg[b] = blank();
+      agg[b][r.p]++; agg[b].total++;
+    });
+    var present = Object.keys(agg).sort();
+    var order = present.length
+      ? enumerateBins(present[0], present[present.length - 1], mode)
+      : [];
+    order.forEach(function (b) { if (!agg[b]) agg[b] = blank(); });
+
+    // An iframe (or a hidden panel) commonly reports 0 width on first paint.
+    // Drawing against that produced a 32px viewBox with a NEGATIVE band width,
+    // and nothing re-measured afterwards. Bail out instead and let the
+    // ResizeObserver below redraw the moment a real width exists.
+    var W = svg.clientWidth || svg.parentNode.clientWidth || 0;
+    if (W < 200) { lastChartW = 0; return; }
+    lastChartW = W;
+    var PL = 38, PR = 8, PT = 10, XB = 26, PLOT = 190;
+    var H = PT + PLOT + XB;
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    svg.setAttribute("height", H);
+
+    if (!order.length) {
+      var t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      t.setAttribute("x", W / 2); t.setAttribute("y", PT + PLOT / 2);
+      t.setAttribute("text-anchor", "middle");
+      t.setAttribute("class", "axis-t");
+      txt(t, "No pull requests match these filters");
+      svg.appendChild(t);
+      return;
+    }
+
+    var maxV = 0;
+    order.forEach(function (b) { if (agg[b].total > maxV) maxV = agg[b].total; });
+    var ticks = niceTicks(maxV);
+    var top = ticks[ticks.length - 1] || 1;
+    var IW = W - PL - PR;
+    var bandW = IW / order.length;
+    var barW = Math.min(24, Math.max(3, bandW - 6));
+
+    function yOf(v) { return PT + PLOT - (v / top) * PLOT; }
+    function svgEl(n) { return document.createElementNS("http://www.w3.org/2000/svg", n); }
+
+    // gridlines + y ticks (solid hairlines, never dashed)
+    ticks.forEach(function (v) {
+      var y = yOf(v);
+      var l = svgEl("line");
+      l.setAttribute("x1", PL); l.setAttribute("x2", W - PR);
+      l.setAttribute("y1", y); l.setAttribute("y2", y);
+      l.setAttribute("class", "gl");
+      svg.appendChild(l);
+      var tx = svgEl("text");
+      tx.setAttribute("x", PL - 7); tx.setAttribute("y", y + 3.5);
+      tx.setAttribute("text-anchor", "end");
+      tx.setAttribute("class", "axis-t");
+      txt(tx, fmt(v));
+      svg.appendChild(tx);
+    });
+
+    var GAP = 2;
+    order.forEach(function (b, i) {
+      var cx = PL + i * bandW + bandW / 2;
+      var x = cx - barW / 2;
+      var acc = 0;
+      var segs = [];
+      PROV.forEach(function (p) {
+        var v = agg[b][p.k];
+        if (v > 0) segs.push({ k: p.k, v: v });
+      });
+      segs.forEach(function (s, si) {
+        var y0 = yOf(acc), y1 = yOf(acc + s.v);
+        var h = y0 - y1;
+        var isTop = si === segs.length - 1;
+        // 2px surface gap ABOVE every non-top segment (no stroke is ever drawn
+        // on a mark). The bottom edge is pinned to y0 and the top is clamped
+        // against it, so a sub-3px segment cannot be pushed past its own
+        // baseline — which is what put 9 rects up to 2px BELOW the zero line.
+        var desired = isTop ? y1 : y1 + GAP;
+        var yy = Math.min(desired, y0 - 1);
+        var hh = Math.max(1, y0 - yy);
+        var node;
+        if (isTop) {
+          node = svgEl("path");
+          node.setAttribute("d", roundTop(x, yy, barW, hh, 4));
+        } else {
+          node = svgEl("rect");
+          node.setAttribute("x", x); node.setAttribute("y", yy);
+          node.setAttribute("width", barW); node.setAttribute("height", hh);
+        }
+        node.setAttribute("fill", PCOL[s.k]);
+        svg.appendChild(node);
+        acc += s.v;
+      });
+
+      // hit band — wider than the mark, focusable, same readout on hover + focus
+      var hit = svgEl("rect");
+      hit.setAttribute("x", PL + i * bandW);
+      hit.setAttribute("y", PT);
+      hit.setAttribute("width", Math.max(bandW, 24));
+      hit.setAttribute("height", PLOT);
+      hit.setAttribute("class", "band");
+      hit.setAttribute("tabindex", "0");
+      hit.setAttribute("role", "img");
+      hit.setAttribute("aria-label",
+        b + ": " + agg[b].total + " PRs — " +
+        agg[b].automation + " " + PROV[0].label + ", " + agg[b].team + " " +
+        PROV[1].label + ", " + agg[b].outside + " " + PROV[2].label);
+      (function (bin, node) {
+        function on(ev) { showTip(bin, agg[bin], node, ev); }
+        function off() { hideTip(); }
+        node.addEventListener("pointerenter", on);
+        node.addEventListener("pointermove", on);
+        node.addEventListener("pointerleave", off);
+        node.addEventListener("focus", on);
+        node.addEventListener("blur", off);
+      })(b, hit);
+      svg.appendChild(hit);
+    });
+
+    // X labels, placed by AVAILABLE PIXELS rather than column count. Prefer year
+    // boundaries, then walk left to right and keep a label only when it clears
+    // the previous one, so labels can never overlap however narrow the viewport.
+    var labelOf = function (b) { return mode === "week" ? b.slice(5) : b; };
+    var isBoundary = function (b) {
+      if (mode === "quarter") return b.indexOf("-Q1") > -1;
+      if (mode === "month") return b.slice(5) === "01";
+      return false;
+    };
+    var candidates = order.map(function (b, i) { return i; });
+    if (order.length > 8 && mode !== "week") {
+      var bounds = candidates.filter(function (i) { return isBoundary(order[i]); });
+      if (bounds.length >= 2) candidates = bounds;
+    }
+
+    var lastRight = -1e9;
+    candidates.forEach(function (i) {
+      var b = order[i];
+      var cx = PL + i * bandW + bandW / 2;
+      var label = labelOf(b);
+      var halfW = label.length * 3.1 + 2;          // ~6.2px per glyph at 10.5px
+
+      // Decide the anchor FIRST, then derive the true edges from it. A
+      // start-anchored label runs tx -> tx + 2*halfW, so using cx + halfW
+      // under-reports its right edge and lets the next label overlap it.
+      var anchor = "middle", tx = cx, left = cx - halfW, right = cx + halfW;
+      if (cx - halfW < PL) {
+        anchor = "start"; tx = PL; left = PL; right = PL + 2 * halfW;
+      } else if (cx + halfW > W - PR) {
+        anchor = "end"; tx = W - PR; left = (W - PR) - 2 * halfW; right = W - PR;
+      }
+      if (left < lastRight + 6) return;            // would collide: skip it
+
+      var lb = svgEl("text");
+      lb.setAttribute("x", tx);
+      lb.setAttribute("y", PT + PLOT + 15);
+      lb.setAttribute("text-anchor", anchor);
+      lb.setAttribute("class", "axis-t");
+      txt(lb, label);
+      svg.appendChild(lb);
+      lastRight = right;
+    });
+  }
+
+  /* ── tooltip ───────────────────────────────────────────────── */
+  var tip = $("tip");
+  function showTip(bin, d, node, ev) {
+    tip.textContent = "";
+    tip.appendChild(txt(mk("div", "tt"), bin));
+    PROV.forEach(function (p) {
+      var r = mk("div", "tr");
+      var k = mk("span", "key"); k.style.background = PCOL[p.k];
+      var v = mk("span", "tv"); txt(v, fmt(d[p.k]));
+      var n = mk("span", "tn"); txt(n, p.label);
+      r.appendChild(k); r.appendChild(v); r.appendChild(n);
+      tip.appendChild(r);
+    });
+    var tot = mk("div", "tot");
+    tot.appendChild(txt(mk("span"), "Total"));
+    var tb = mk("b"); txt(tb, fmt(d.total)); tot.appendChild(tb);
+    tip.appendChild(tot);
+
+    var host = tip.parentNode.getBoundingClientRect();
+    var box = node.getBoundingClientRect();
+    var left = box.left - host.left + box.width / 2 - tip.offsetWidth / 2;
+    left = Math.max(4, Math.min(left, host.width - tip.offsetWidth - 4));
+    tip.style.left = left + "px";
+    tip.style.top = "6px";
+    tip.setAttribute("data-on", "1");
+  }
+  function hideTip() { tip.setAttribute("data-on", "0"); }
+
+  /* ── table ─────────────────────────────────────────────────── */
+  var COLS = [
+    { k: "_st", lab: "", sort: null, cls: "stripe" },
+    { k: "n", lab: "PR", sort: "n", cls: "pr num" },
+    { k: "t", lab: "Title", sort: "t", cls: "ti" },
+    { k: "p", lab: "Opened by", sort: "p", cls: "" },
+    { k: "u", lab: "Author", sort: "u", cls: "auth" },
+    { k: "sc", lab: COPY.whyColumnHeader || "Why", sort: "sc", cls: "scope" },
+    { k: "st", lab: "State", sort: "st", cls: "" },
+    { k: "c", lab: "Opened", sort: "created", cls: "num" },
+    { k: "f", lab: "Files", sort: "f", cls: "num" },
+    { k: "a", lab: "Lines", sort: "a", cls: "num" }
+  ];
+
+  // renderHead() rebuilds the row on every render, which destroys the element the
+  // user was standing on and dumps focus to <body>. Remember the intent and
+  // restore it after the rebuild.
+  var pendingFocus = null;
+
+  function renderHead() {
+    var tr = $("thead");
+    tr.textContent = "";
+    COLS.forEach(function (c) {
+      var th = mk("th", c.cls.indexOf("num") > -1 ? "num" : "");
+      if (c.sort) {
+        var active = state.sort === c.sort;
+        th.className += " sortable";
+        th.setAttribute("tabindex", "0");
+        // Keep the native columnheader role (role="button" would discard the
+        // table semantics); aria-sort is what announces the state.
+        th.setAttribute("aria-sort", active
+          ? (state.dir === 1 ? "ascending" : "descending") : "none");
+        th.appendChild(document.createTextNode(c.lab));
+        if (active) {
+          var a = mk("span", "arw");
+          txt(a, state.dir === 1 ? "▲" : "▼");
+          // Glyph is decorative — out of the accessible name, which otherwise
+          // reads "Author▲".
+          a.setAttribute("aria-hidden", "true");
+          th.appendChild(a);
+        }
+        var go = function () {
+          if (state.sort === c.sort) { state.dir = -state.dir; }
+          else { state.sort = c.sort; state.dir = (c.sort === "t" || c.sort === "u") ? 1 : -1; }
+          pendingFocus = { kind: "sort", key: c.sort };
+          render();
+        };
+        th.addEventListener("click", go);
+        th.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); }
+        });
+        if (pendingFocus && pendingFocus.kind === "sort" && pendingFocus.key === c.sort) {
+          th.setAttribute("data-refocus", "1");
+        }
+      } else {
+        txt(th, c.lab);
+      }
+      tr.appendChild(th);
+    });
+  }
+
+  function restoreFocus() {
+    if (!pendingFocus) return;
+    var target = null;
+    if (pendingFocus.kind === "sort") {
+      target = document.querySelector('th[data-refocus="1"]');
+      if (target) target.removeAttribute("data-refocus");
+    } else if (pendingFocus.kind === "more") {
+      target = $("more").querySelector("button") || $("tbl").querySelector("th.sortable");
+    }
+    pendingFocus = null;
+    if (target && typeof target.focus === "function") target.focus();
+  }
+
+  function sortRows(rows) {
+    var s = state.sort, d = state.dir;
+    var key = s === "created" ? "c" : s;
+    return rows.slice().sort(function (x, y) {
+      var a = x[key], b = y[key];
+      if (typeof a === "string" && typeof b === "string") {
+        a = a.toLowerCase(); b = b.toLowerCase();
+      }
+      if (a < b) return -d;
+      if (a > b) return d;
+      return x.n - y.n;
+    });
+  }
+
+  var STATE_LAB = { merged: "Merged", open: "Open", draft: "Draft", closed: "Closed" };
+
+  function renderTable(rows) {
+    var tb = $("tbody");
+    tb.textContent = "";
+    var sorted = sortRows(rows);
+    var shown = sorted.slice(0, state.limit);
+
+    if (!shown.length) {
+      var tr0 = mk("tr");
+      var td0 = mk("td", "empty");
+      td0.setAttribute("colspan", COLS.length);
+      txt(td0, "No pull requests match these filters. Try widening the scope or clearing the search.");
+      tr0.appendChild(td0);
+      tb.appendChild(tr0);
+    }
+
+    shown.forEach(function (r) {
+      var tr = mk("tr");
+
+      var tdS = mk("td", "stripe");
+      tdS.style.background = PCOL[r.p];
+      tr.appendChild(tdS);
+
+      var tdN = mk("td", "pr num");
+      var a = mk("a");
+      a.href = r.url; a.target = "_blank"; a.rel = "noopener noreferrer";
+      a.className = "mono";
+      txt(a, "#" + r.n);
+      tdN.appendChild(a); tr.appendChild(tdN);
+
+      var tdT = mk("td", "ti");
+      var sp = mk("span", "txt");
+      txt(sp, r.t);
+      tdT.appendChild(sp);
+      (r.lb || []).forEach(function (l) {
+        var tg = mk("span", "tag"); txt(tg, l); tdT.appendChild(tg);
+      });
+      tr.appendChild(tdT);
+
+      var tdP = mk("td");
+      var ch = mk("span", "pchip");
+      var d = mk("span", "d"); d.style.background = PCOL[r.p];
+      ch.appendChild(d);
+      var pl = PROV.filter(function (p) { return p.k === r.p; })[0];
+      ch.appendChild(txt(mk("span"), pl ? pl.label : r.p));
+      tdP.appendChild(ch); tr.appendChild(tdP);
+
+      var tdA = mk("td", "auth");
+      var lg = mk("span", "lg mono"); txt(lg, r.u);
+      tdA.appendChild(lg);
+      var nm = META.names[r.u];
+      if (nm) tdA.appendChild(txt(mk("span", "rn"), nm));
+      tr.appendChild(tdA);
+
+      var tdSc = mk("td", "scope");
+      var q = mk("span", "q");
+      // Every row is in scope here, so restating that adds nothing. Lead with the
+      // first signal that fired and let the tooltip carry the full list.
+      var first = (r.sg && r.sg.length) ? (META.signalLabels[r.sg[0]] || r.sg[0]) : "—";
+      txt(q, first + (r.sg && r.sg.length > 1 ? " +" + (r.sg.length - 1) : ""));
+      var why = (r.sg || []).map(function (s) {
+        return META.signalLabels[s] || s;
+      }).join("; ");
+      q.title = why || (COPY.whyTooltipEmpty || "no signal recorded");
+      tdSc.appendChild(q); tr.appendChild(tdSc);
+
+      var tdSt = mk("td");
+      var p2 = mk("span", "pill " + r.st);
+      txt(p2, STATE_LAB[r.st] || r.st);
+      tdSt.appendChild(p2); tr.appendChild(tdSt);
+
+      var tdC = mk("td", "num");
+      txt(tdC, r.c); tr.appendChild(tdC);
+
+      var tdF = mk("td", "num");
+      txt(tdF, fmt(r.f)); tr.appendChild(tdF);
+
+      var tdL = mk("td", "num");
+      var pls = mk("span", "plus"); txt(pls, "+" + fmt(r.a));
+      var mns = mk("span", "minus"); txt(mns, " −" + fmt(r.d));
+      tdL.appendChild(pls); tdL.appendChild(mns);
+      tr.appendChild(tdL);
+
+      tb.appendChild(tr);
+    });
+
+    var more = $("more");
+    more.textContent = "";
+    if (sorted.length > shown.length) {
+      var btn = mk("button", "act");
+      btn.type = "button";
+      txt(btn, "Show " + fmt(Math.min(500, sorted.length - shown.length)) +
+               " more (" + fmt(sorted.length - shown.length) + " hidden)");
+      btn.addEventListener("click", function () {
+        state.limit += 500;
+        pendingFocus = { kind: "more" };
+        render();
+      });
+      more.appendChild(btn);
+    } else if (sorted.length) {
+      more.appendChild(txt(mk("span", "viewing"),
+        "All " + fmt(sorted.length) + " shown"));
+    }
+    txt($("tblNote"), fmt(sorted.length) + " rows · newest first by default");
+  }
+
+  /* ── chips / legend ───────────────────────────────────────── */
+  function renderChips() {
+    var host = $("provChips");
+    host.textContent = "";
+    var tot = {};
+    ROWS.forEach(function (r) { tot[r.p] = (tot[r.p] || 0) + 1; });
+    PROV.forEach(function (p) {
+      var b = mk("button", "chip");
+      b.type = "button";
+      b.setAttribute("aria-pressed", state.prov[p.k] ? "true" : "false");
+      var d = mk("span", "dot"); d.style.background = PCOL[p.k];
+      b.appendChild(d);
+      b.appendChild(txt(mk("span", "nm"), p.label));
+      b.appendChild(txt(mk("span", "ct"), fmt(tot[p.k] || 0)));
+      b.addEventListener("click", function () {
+        state.prov[p.k] = !state.prov[p.k];
+        state.limit = 250;
+        render();
+      });
+      host.appendChild(b);
+    });
+  }
+
+  function renderLegend() {
+    var host = $("legend");
+    host.textContent = "";
+    PROV.forEach(function (p) {
+      var li = mk("span", "li");
+      var sw = mk("span", "sw"); sw.style.background = PCOL[p.k];
+      li.appendChild(sw);
+      li.appendChild(txt(mk("span"), p.label));
+      host.appendChild(li);
+    });
+  }
+
+  /* ── stamp + methodology ──────────────────────────────────── */
+  // All masthead and section copy lives in the config, so it is written in here
+  // rather than being baked into the markup. textContent throughout: copy is
+  // trusted config, but there is no reason to hand it an HTML parser.
+  function renderCopy() {
+    var pairs = [
+      ["eyebrow", COPY.eyebrow],
+      ["pageH1", COPY.h1],
+      ["intro", COPY.intro],
+      ["provTitle", COPY.provPanelTitle],
+      ["timelineTitle", COPY.timelineTitle]
+    ];
+    pairs.forEach(function (pair) {
+      var el = $(pair[0]);
+      if (el) txt(el, pair[1] || "");
+    });
+    if (COPY.docTitle) document.title = COPY.docTitle;
+  }
+
+  function renderStamp() {
+    var host = $("stamp");
+    host.textContent = "";
+    [["Data as of", META.generated],
+     ["Refreshes", COPY.refreshCadence || "on a schedule"],
+     ["Span", META.first + " → " + META.last],
+     [COPY.stampTotalLabel || "PRs", fmt(META.total) + " of " + fmt(META.repoTotalPrs) + " in the repo"],
+     ["Source", META.repo]
+    ].forEach(function (pair) {
+      var s = mk("span");
+      s.appendChild(document.createTextNode(pair[0] + " "));
+      var b = mk("b"); txt(b, pair[1]);
+      s.appendChild(b);
+      host.appendChild(s);
+    });
+
+    // The page cannot trigger its own refresh: a strict CSP blocks every outbound
+    // request, so there is no in-page button that could work. This is a plain link
+    // to the routine, where one click runs it — honest about what it does.
+    if (META.routineUrl) {
+      var a = mk("a", "refresh-link");
+      a.href = META.routineUrl;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      txt(a, "Refresh now →");
+      a.title = "Opens the scheduled routine on claude.ai, where Run now rebuilds "
+              + "this page. Requires access to the routine.";
+      host.appendChild(a);
+    }
+  }
+
+  function renderMethod() {
+    var m = $("method");
+    m.textContent = "";
+
+    function h3(s) { if (s) m.appendChild(txt(mk("h3"), s)); }
+    function p(s) { if (s) m.appendChild(txt(mk("p"), s)); }
+    function caveat(s) {
+      if (!s) return;
+      var d = mk("div", "caveat");
+      d.appendChild(txt(mk("p"), s));
+      m.appendChild(d);
+    }
+    function ul(items) {
+      var u = mk("ul");
+      items.forEach(function (it) {
+        var li = mk("li");
+        li.appendChild(document.createTextNode(it));
+        u.appendChild(li);
+      });
+      m.appendChild(u);
+    }
+
+    // Every string here comes from the config, so this template describes no
+    // particular product, team or ticket convention of its own.
+    h3(COPY.methodWhyHeading);
+    (COPY.methodWhyParas || []).forEach(p);
+
+    h3(COPY.methodExclusionHeading);
+    caveat(COPY.methodExclusionPara);
+
+    h3(COPY.methodProvHeading);
+    var outsideAuthors = {};
+    ROWS.forEach(function (r) { if (r.p === "outside") outsideAuthors[r.u] = 1; });
+    var rosterLogins = Object.keys(META.roster || {});
+    ul([
+      PROV[0].label + " — the PR's author is a bot account: " +
+        ((META.bots || []).join(", ") || "none seen in this data") + ".",
+      PROV[1].label + " — the author is one of the " + rosterLogins.length +
+        " roster logins: " + rosterLogins.map(function (k) {
+          return k + " (" + META.roster[k] + ")";
+        }).join(", ") + ".",
+      PROV[2].label + " — every other human author, currently " +
+        fmt(Object.keys(outsideAuthors).length) + " distinct people across the whole set."
+    ]);
+    p(COPY.methodProvNote);
+
+    h3(COPY.methodCaveatHeading);
+    (COPY.methodCaveats || []).forEach(caveat);
+    caveat("The window starts " + META.first + ". Anything before that date cannot " +
+           "appear regardless of filters.");
+
+    h3(COPY.methodRefreshHeading);
+    p(COPY.methodRefreshPara);
+
+    h3("Colour");
+    p("The three provenance hues are slots 1–3 of a colourblind-validated " +
+      "categorical palette, checked against this page's own surfaces in both light " +
+      "and dark mode on the strict all-pairs list (worst CVD ΔE 9.2 light / 9.4 " +
+      "dark against a target of 8). Colour never carries meaning alone — every " +
+      "hue is paired with a text label, and the ledger is the full table view.");
+  }
+
+  /* ── CSV export ───────────────────────────────────────────── */
+  function csvOf(rows) {
+    var head = ["number", "title", "author", "author_name", "provenance", "scope",
+                "state", "opened", "merged", "files", "additions", "deletions",
+                "head_branch", "base_branch", "labels", "signals", "url"];
+    function esc(v) {
+      v = v == null ? "" : String(v);
+      return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+    }
+    var lines = [head.join(",")];
+    sortRows(rows).forEach(function (r) {
+      lines.push([r.n, r.t, r.u, META.names[r.u] || "", r.p, r.sc, r.st, r.c, r.m,
+                  r.f, r.a, r.d, r.hb, r.bb, (r.lb || []).join(" "),
+                  (r.sg || []).join(" "), r.url].map(esc).join(","));
+    });
+    return lines.join("\n");
+  }
+
+  var btnCsv = $("btnCsv");
+  if (!window.claude || !window.claude.downloads) {
+    btnCsv.style.display = "none";
+  }
+  btnCsv.addEventListener("click", function () {
+    var dl = window.claude && window.claude.downloads;
+    if (!dl) return;
+    var rows = apply();
+    var body = csvOf(rows);
+    var base = (COPY.csvBasename || "pull-requests") + "-" + rows.length;
+    btnCsv.disabled = true;
+    var restore = function (label) {
+      txt(btnCsv, label);
+      setTimeout(function () { txt(btnCsv, "Export CSV"); btnCsv.disabled = false; }, 2200);
+    };
+    dl.save({ filename: base + ".csv", data: body })
+      .then(function () { restore("Saved"); })
+      .catch(function (err) {
+        var code = err && err.code;
+        if (code === "extension_not_enabled") {
+          // csv is in the extended set; fall back to a base-set extension
+          dl.save({ filename: base + ".txt", data: body })
+            .then(function () { restore("Saved as .txt"); })
+            .catch(function (e2) {
+              if (e2 && e2.code === "declined") { restore("Export CSV"); }
+              else if (e2 && (e2.code === "unavailable" || e2.code === "not_granted" ||
+                              e2.code === "capability_disabled" || e2.code === "capability_removed")) {
+                btnCsv.style.display = "none";
+              } else { restore("Export failed"); }
+            });
+        } else if (code === "declined") {
+          restore("Export CSV");
+        } else if (code === "rate_limited") {
+          restore("Try again");
+        } else if (code === "too_large") {
+          restore("Too large — filter first");
+        } else if (code === "unavailable" || code === "not_granted" ||
+                   code === "capability_disabled" || code === "capability_removed") {
+          btnCsv.style.display = "none";
+        } else {
+          restore("Export failed");
+        }
+      });
+  });
+
+  /* ── wiring ───────────────────────────────────────────────── */
+  function render() {
+    var rows = apply();
+    txt($("viewing"), fmt(rows.length) + " of " + fmt(META.total) + " shown");
+    renderStats(rows);
+    renderProv(rows);
+    renderChart(rows);
+    renderHead();
+    renderTable(rows);
+    var chips = $("provChips").children;
+    PROV.forEach(function (p, i) {
+      if (chips[i]) chips[i].setAttribute("aria-pressed", state.prov[p.k] ? "true" : "false");
+    });
+    restoreFocus();
+  }
+
+  $("fState").addEventListener("change", function (e) {
+    state.st = e.target.value; state.limit = 250; render();
+  });
+  $("fRange").addEventListener("change", function (e) {
+    state.range = parseInt(e.target.value, 10) || 0; state.limit = 250; render();
+  });
+  var qt;
+  $("fQ").addEventListener("input", function (e) {
+    clearTimeout(qt);
+    var v = e.target.value;
+    qt = setTimeout(function () { state.q = v; state.limit = 250; render(); }, 140);
+  });
+  $("btnReset").addEventListener("click", function () {
+    state.prov = { automation: true, team: true, outside: true };
+    state.st = "all"; state.range = 0; state.q = "";
+    state.sort = "created"; state.dir = -1; state.limit = 250;
+    $("fState").value = "all";
+    $("fRange").value = "0"; $("fQ").value = "";
+    render();
+  });
+
+  var rt;
+  function scheduleChart() {
+    clearTimeout(rt);
+    rt = setTimeout(function () { renderChart(chartRows); }, 100);
+  }
+  window.addEventListener("resize", scheduleChart);
+
+  renderCopy();
+  renderStamp();
+  renderChips();
+  renderLegend();
+  renderMethod();
+  render();
+
+  // Redraw whenever the container's width actually changes — this is what
+  // recovers the chart when the first paint measured 0 (iframe not yet sized)
+  // and what keeps it correct on later layout changes.
+  if (typeof ResizeObserver === "function") {
+    var host = document.querySelector(".chart-body");
+    if (host) {
+      // Compare against the last CONTAINER width, not lastChartW (which measures
+      // the svg) — mixing the two could ping-pong a redraw forever.
+      var lastHostW = 0;
+      new ResizeObserver(function (entries) {
+        var w = entries[0] && entries[0].contentRect ? entries[0].contentRect.width : 0;
+        if (w < 200 || Math.abs(w - lastHostW) <= 1) return;
+        lastHostW = w;
+        scheduleChart();
+      }).observe(host);
+    }
+  }
+  requestAnimationFrame(function () { renderChart(chartRows); });
+})();
+</script>

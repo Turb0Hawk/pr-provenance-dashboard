@@ -1,0 +1,8 @@
+# Keep organisation-specific configs and generated output out of the repo.
+config.*.json
+!config.example.json
+raw*.json
+data.json
+dashboard.html
+*.tar.gz
+__pycache__/
