@@ -94,9 +94,16 @@ def provenance(cfg, login):
     return "team" if login in (cfg.get("roster") or {}) else "outside"
 
 
-def norm_state(state, is_draft):
+def norm_state(state, is_draft, merged_at=None):
+    """Merged wins over closed.
+
+    GitHub's SEARCH api reports a merged pull request as state "closed"; the only
+    discriminator is a non-null merged_at. Trusting `state` alone therefore files
+    every merged PR as "closed unmerged". A caller that supplies a real MERGED
+    state still works, so both shapes are handled.
+    """
     s = (state or "").upper()
-    if s == "MERGED":
+    if s == "MERGED" or merged_at:
         return "merged"
     if s == "OPEN":
         return "draft" if is_draft else "open"
@@ -127,7 +134,8 @@ def coerce(cfg, raw):
         labels = [l.get("name") if isinstance(l, dict) else l
                   for l in (pr.get("labels") or [])]
         created = (pr.get("createdAt") or pr.get("created_at") or pr.get("c") or "")[:10]
-        merged = pr.get("mergedAt") or pr.get("merged_at") or pr.get("m") or ""
+        merged = (pr.get("mergedAt") or pr.get("merged_at") or pr.get("m")
+                  or (pr.get("pull_request") or {}).get("merged_at") or "")
         merged = merged[:10] if merged else ""
         url = pr.get("url") or pr.get("html_url") or url_tpl.replace("{n}", str(num))
 
@@ -139,7 +147,9 @@ def coerce(cfg, raw):
         rec = {
             "n": num, "t": title, "u": author or "(unknown)",
             "p": provenance(cfg, author),
-            "st": norm_state(pr.get("state"), pr.get("isDraft") or pr.get("draft")),
+            "st": norm_state(pr.get("state"),
+                             pr.get("isDraft") or pr.get("draft"),
+                             merged),
             "c": created, "m": merged,
             "a": int(pr.get("additions") or pr.get("a") or 0),
             "d": int(pr.get("deletions") or pr.get("d") or 0),
