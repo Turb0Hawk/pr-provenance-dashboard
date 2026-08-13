@@ -921,7 +921,7 @@ td.scope .q { cursor: help; border-bottom: 1px dotted var(--rule-2); }
   function hideTip() { tip.setAttribute("data-on", "0"); }
 
   /* ── table ─────────────────────────────────────────────────── */
-  var COLS = [
+  var ALL_COLS = [
     { k: "_st", lab: "", sort: null, cls: "stripe" },
     { k: "n", lab: "PR", sort: "n", cls: "pr num" },
     { k: "t", lab: "Title", sort: "t", cls: "ti" },
@@ -930,9 +930,22 @@ td.scope .q { cursor: help; border-bottom: 1px dotted var(--rule-2); }
     { k: "sc", lab: COPY.whyColumnHeader || "Why", sort: "sc", cls: "scope" },
     { k: "st", lab: "State", sort: "st", cls: "" },
     { k: "c", lab: "Opened", sort: "created", cls: "num" },
-    { k: "f", lab: "Files", sort: "f", cls: "num" },
-    { k: "a", lab: "Lines", sort: "a", cls: "num" }
+    { k: "f", lab: "Files", sort: "f", cls: "num",
+      has: function () { return ROWS.some(function (r) { return r.f > 0; }); } },
+    { k: "a", lab: "Lines", sort: "a", cls: "num",
+      has: function () { return ROWS.some(function (r) { return r.a > 0 || r.d > 0; }); } }
   ];
+
+  // Drop a column entirely when NO row has data for it. Some sources cannot supply
+  // diff size (a PR search may return no additions/deletions/changedFiles), and
+  // rendering "0 files, +0 -0" on every row would state something false rather than
+  // simply omitting what is unknown.
+  var COLS = ALL_COLS.filter(function (c) { return !c.has || c.has(); });
+  var DROPPED_COLS = ALL_COLS.filter(function (c) { return c.has && !c.has(); })
+                             .map(function (c) { return c.lab; });
+  var COL_KEYS = {};
+  COLS.forEach(function (c) { COL_KEYS[c.k] = true; });
+  function hasCol(k) { return !!COL_KEYS[k]; }
 
   // renderHead() rebuilds the row on every render, which destroys the element the
   // user was standing on and dumps focus to <body>. Remember the intent and
@@ -1083,14 +1096,21 @@ td.scope .q { cursor: help; border-bottom: 1px dotted var(--rule-2); }
       var tdC = mk("td", "num");
       txt(tdC, r.c); tr.appendChild(tdC);
 
-      var tdF = mk("td", "num");
-      txt(tdF, fmt(r.f)); tr.appendChild(tdF);
+      // These two are omitted entirely when the source supplied no diff sizes, so
+      // they must be gated on the SAME predicate as the header or the row ends up
+      // with more cells than there are columns.
+      if (hasCol("f")) {
+        var tdF = mk("td", "num");
+        txt(tdF, fmt(r.f)); tr.appendChild(tdF);
+      }
 
-      var tdL = mk("td", "num");
-      var pls = mk("span", "plus"); txt(pls, "+" + fmt(r.a));
-      var mns = mk("span", "minus"); txt(mns, " −" + fmt(r.d));
-      tdL.appendChild(pls); tdL.appendChild(mns);
-      tr.appendChild(tdL);
+      if (hasCol("a")) {
+        var tdL = mk("td", "num");
+        var pls = mk("span", "plus"); txt(pls, "+" + fmt(r.a));
+        var mns = mk("span", "minus"); txt(mns, " −" + fmt(r.d));
+        tdL.appendChild(pls); tdL.appendChild(mns);
+        tr.appendChild(tdL);
+      }
 
       tb.appendChild(tr);
     });
@@ -1250,6 +1270,12 @@ td.scope .q { cursor: help; border-bottom: 1px dotted var(--rule-2); }
     (COPY.methodCaveats || []).forEach(caveat);
     caveat("The window starts " + META.first + ". Anything before that date cannot " +
            "appear regardless of filters.");
+
+    if (DROPPED_COLS.length) {
+      caveat("Columns omitted for this build: " + DROPPED_COLS.join(", ") +
+             ". The data source did not supply those values for any pull request, so " +
+             "they are left out rather than shown as zero.");
+    }
 
     h3(COPY.methodRefreshHeading);
     p(COPY.methodRefreshPara);
